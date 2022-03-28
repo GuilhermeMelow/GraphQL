@@ -1,4 +1,6 @@
-﻿namespace GraphQL.GraphExceptions
+﻿using HotChocolate;
+
+namespace GraphQL.GraphExceptions
 {
     [GraphQLName("RootError")]
     public interface IRootError

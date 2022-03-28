@@ -2,6 +2,8 @@
 using GraphQL.GraphExceptions.Book;
 using GraphQL.Models;
 using GraphQL.Repositories;
+using GraphQL.UseCases;
+using HotChocolate.Subscriptions;
 
 namespace GraphQL.Mutations
 {
@@ -9,27 +11,18 @@ namespace GraphQL.Mutations
     {
         private readonly BookRepository repository;
         private readonly IMapper mapper;
+        private readonly ITopicEventSender sender;
 
-        public BookMutation(BookRepository repository, IMapper mapper)
+        public BookMutation(BookRepository repository, IMapper mapper, ITopicEventSender sender)
         {
             this.repository = repository;
             this.mapper = mapper;
+            this.sender = sender;
         }
 
-        [Error(typeof(BookAlredyRegisteredException))]
-        public async Task<Book> AddBook(BookDto bookInput)
-        {
-            if (IsRegistered(bookInput.Id)) throw new BookAlredyRegisteredException("O dado já foi cadastro");
+        public Task<Book> AddBook(BookDto bookInput, [Service] IBookAddUseCase useCase) => useCase.Handle(bookInput);
 
-            var book = mapper.Map<Book>(bookInput);
-
-            await repository.Add(book);
-
-            return book;
-        }
-
-        [Error(typeof(BookErrorFactory))]
-        public async Task<Book> UpdateBook([ID] Guid id, BookDto bookInput)
+        public async Task<Book> UpdateBook(Guid id, BookDto bookInput)
         {
             if (!IsRegistered(bookInput.Id)) throw new BookNotFoundException("Não foi encontrado.");
 
@@ -39,17 +32,20 @@ namespace GraphQL.Mutations
 
             await repository.Alterar(book);
 
+            await sender.SendAsync("ChangedBook", book);
+
             return book;
         }
 
-        [Error(typeof(BookErrorFactory))]
-        public async Task<Book> RemoveBook([ID] Guid id)
+        public async Task<Book> RemoveBook(Guid id)
         {
             if (!IsRegistered(id)) throw new BookNotFoundException();
 
             var book = repository[id];
 
             await repository.Remover(book);
+
+            await sender.SendAsync("RemovedBook", book);
 
             return book;
         }

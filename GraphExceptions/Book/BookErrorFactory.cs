@@ -11,6 +11,7 @@ namespace GraphQL.GraphExceptions.Book
         public BookNotFoundError(BaseException exception) : base(exception) { }
     }
 
+    /*
     public class BookErrorFactory :
             IPayloadErrorFactory<DivergentGuidException, DivergentGuidError>,
             IPayloadErrorFactory<BookNotFoundException, BookNotFoundError>
@@ -18,5 +19,5 @@ namespace GraphQL.GraphExceptions.Book
         public DivergentGuidError CreateErrorFrom(DivergentGuidException ex) => new(ex);
 
         public BookNotFoundError CreateErrorFrom(BookNotFoundException ex) => new(ex);
-    }
+    }*/
 }

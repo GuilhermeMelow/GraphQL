@@ -6,10 +6,10 @@ namespace GraphQL.GraphExceptions
     {
         public BaseException(string message, HttpStatusCode code) : base(message)
         {
-            _code = code;
+            this.code = code;
         }
 
-        private readonly HttpStatusCode _code;
-        public int Code => ((int)_code);
+        private readonly HttpStatusCode code;
+        public int Code => ((int)code);
     }
 }
