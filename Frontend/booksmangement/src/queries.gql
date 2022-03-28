@@ -1,0 +1,18 @@
+import gql from "graphql-tag"
+
+export const queries = {
+    books: gql`
+        query books {
+            books {
+                id
+                title
+            }
+        }`,
+    onBookAdded: gql`
+        subscription onBookAdded($authorId: UUID!) {
+            bookPublished(authorId: $authorId) {
+                id
+                title
+            }
+        }`,
+}

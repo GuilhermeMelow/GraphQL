@@ -1,0 +1,56 @@
+{
+    "name": "books",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "serve": "vue-cli-service serve",
+        "build": "vue-cli-service build",
+        "lint": "vue-cli-service lint"
+    },
+    "dependencies": {
+        "@apollo/client": "^3.5.10",
+        "@vue/apollo-components": "^4.0.0-alpha.16",
+        "@vue/apollo-composable": "^4.0.0-alpha.16",
+        "@vue/apollo-option": "^4.0.0-alpha.16",
+        "apollo-boost": "^0.4.9",
+        "core-js": "^3.6.5",
+        "graphql": "^16.3.0",
+        "graphql-tag": "^2.12.6",
+        "subscriptions-transport-ws": "^0.11.0",
+        "vue": "^3.0.0",
+        "vue-apollo": "^3.1.0"
+    },
+    "devDependencies": {
+        "@vue/cli-plugin-babel": "~4.5.11",
+        "@vue/cli-plugin-eslint": "~4.5.11",
+        "@vue/cli-service": "~4.5.11",
+        "@vue/compiler-sfc": "^3.0.0",
+        "babel-eslint": "^10.1.0",
+        "eslint": "^6.7.2",
+        "eslint-plugin-vue": "^7.0.0"
+    },
+    "eslintConfig": {
+        "root": true,
+        "env": {
+            "node": true
+        },
+        "extends": [
+            "plugin:vue/vue3-essential",
+            "eslint:recommended"
+        ],
+        "parserOptions": {
+            "parser": "babel-eslint"
+        },
+        "rules": {
+            "no-debugger": "off"
+        }
+    },
+    "browserslist": [
+        "> 1%",
+        "last 2 versions",
+        "not dead"
+    ],
+    "main": "index.js",
+    "author": "GuilhermeMelow <guilhermefepeme@hotmail.com>",
+    "license": "MIT"
+}

@@ -1,0 +1,14 @@
+import gql from "graphql-tag"
+
+export const mutations = {
+    addBook: gql`
+    mutation bookManage($model: BookDtoInput!) {
+        addBook(input: { bookInput: $model }) {
+          __typename
+          book {
+            id,
+            title
+          }
+        }
+    }`,
+}
