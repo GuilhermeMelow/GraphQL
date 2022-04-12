@@ -1,7 +1,8 @@
 {
   "profiles": {
     "GraphQL": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\Guilherme\\source\\repos\\GraphQL\\Backend"
     },
     "WSL": {
       "commandName": "WSL2",

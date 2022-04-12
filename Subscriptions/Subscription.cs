@@ -15,11 +15,9 @@ namespace GraphQL.Subscriptions
         public Book BookPublished([EventMessage] Book book, Guid authorId) => book;
 
         [Subscribe]
-        [Topic("RemovedBook")]
-        public Book RemovedBook([EventMessage] Book book) => book;
+        public Book BookRemoved([EventMessage] Book book) => book;
 
         [Subscribe]
-        [Topic("ChangedBook")]
-        public Book ChangedBook([EventMessage] Book book) => book;
+        public Book BookChanged([EventMessage] Book book) => book;
     }
 }

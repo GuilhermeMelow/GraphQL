@@ -7,6 +7,7 @@ using HotChocolate.Subscriptions;
 
 namespace GraphQL.Mutations
 {
+    [ExtendObjectType(typeof(Mutation))]
     public class BookMutation
     {
         private readonly BookRepository repository;
