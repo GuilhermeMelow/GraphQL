@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 
 namespace GraphQL.Mutations
@@ -12,8 +13,7 @@ namespace GraphQL.Mutations
     {
         private readonly AppSettings appsettings;
 
-        public LoginMutation(SignInManager<IdentityUser> signInManager,
-                             IOptions<AppSettings> appsettings)
+        public LoginMutation(IOptions<AppSettings> appsettings)
         {
             this.appsettings = appsettings.Value;
         }
@@ -39,7 +39,7 @@ namespace GraphQL.Mutations
             return new UserResult
             {
                 Username = userDto.Username,
-                Token = GerarJwt()
+                Token = GerarJwt(userDto.Username)
             };
         }
 
@@ -60,16 +60,23 @@ namespace GraphQL.Mutations
             return new UserResult
             {
                 Username = userDto.Username,
-                Token = GerarJwt()
+                Token = GerarJwt(userDto.Username)
             };
         }
 
-        private string GerarJwt()
+        private string GerarJwt(string userName)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(appsettings.Secret);
             var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
             {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim("id", Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Name, userName),
+                    new Claim(JwtRegisteredClaimNames.Email, userName),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                }),
                 Issuer = appsettings.Emissor,
                 Audience = appsettings.ValidoEm,
                 Expires = DateTime.UtcNow.AddHours(appsettings.ExpiracaoHoras),

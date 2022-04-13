@@ -3,10 +3,12 @@ using GraphQL.GraphExceptions.Book;
 using GraphQL.Models;
 using GraphQL.Repositories;
 using GraphQL.UseCases;
+using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.Subscriptions;
 
 namespace GraphQL.Mutations
 {
+
     [ExtendObjectType(typeof(Mutation))]
     public class BookMutation
     {
@@ -21,8 +23,10 @@ namespace GraphQL.Mutations
             this.sender = sender;
         }
 
+        [Authorize]
         public Task<Book> AddBook(BookDto bookInput, [Service] IBookAddUseCase useCase) => useCase.Handle(bookInput);
 
+        [Authorize]
         public async Task<Book> UpdateBook(Guid id, BookDto bookInput)
         {
             if (!IsRegistered(bookInput.Id)) throw new BookNotFoundException("Não foi encontrado.");
@@ -38,6 +42,7 @@ namespace GraphQL.Mutations
             return book;
         }
 
+        [Authorize]
         public async Task<Book> RemoveBook(Guid id)
         {
             if (!IsRegistered(id)) throw new BookNotFoundException();

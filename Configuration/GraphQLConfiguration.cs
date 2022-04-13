@@ -1,4 +1,5 @@
-﻿using GraphQL.GraphExceptions;
+﻿using GraphQL.Extensions;
+using GraphQL.GraphExceptions;
 using GraphQL.Mutations;
 using GraphQL.Queries;
 using GraphQL.Subscriptions;
@@ -15,6 +16,8 @@ namespace GraphQL.Configuration
         {
             var graphQLBuilder = services
                 .AddGraphQLServer()
+                .AddAuthorization()
+                .AddHttpRequestInterceptor<AuthenticationInterceptor>()
                 .AddInMemorySubscriptions();
 
             graphQLBuilder
@@ -43,7 +46,7 @@ namespace GraphQL.Configuration
                 SubscriptionPath = "/graphql"
             });
 
-            app.MapGraphQL();
+            app.MapGraphQL().AllowAnonymous();
 
             return app;
         }

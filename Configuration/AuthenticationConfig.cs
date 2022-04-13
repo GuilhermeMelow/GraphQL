@@ -36,6 +36,8 @@ namespace GraphQL.Configuration
                 };
             });
 
+            services.AddAuthorization();
+
             return services;
         }
     }
