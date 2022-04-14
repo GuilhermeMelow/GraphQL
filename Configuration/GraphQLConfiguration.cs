@@ -17,7 +17,8 @@ namespace GraphQL.Configuration
             var graphQLBuilder = services
                 .AddGraphQLServer()
                 .AddAuthorization()
-                .AddHttpRequestInterceptor<AuthenticationInterceptor>()
+                .AddHttpRequestInterceptor<HttpAuthenticationInterceptor>()
+                .AddSocketSessionInterceptor<SocketAuthenticationInterceptor>()
                 .AddInMemorySubscriptions();
 
             graphQLBuilder
@@ -46,7 +47,7 @@ namespace GraphQL.Configuration
                 SubscriptionPath = "/graphql"
             });
 
-            app.MapGraphQL().AllowAnonymous();
+            app.MapGraphQL();
 
             return app;
         }
