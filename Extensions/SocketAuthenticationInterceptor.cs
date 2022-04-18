@@ -31,7 +31,16 @@ namespace GraphQL.Extensions
                 return ValueTask.FromResult(ConnectionStatus.Reject(ex.Message));
             }
 
+            Task.Run(() => RefreshConnectionAsync(connection, cancellationToken), cancellationToken);
+
             return base.OnConnectAsync(connection, message, cancellationToken);
+        }
+
+        private static async Task RefreshConnectionAsync(ISocketConnection connection, CancellationToken cancellationToken)
+        {
+            await Task.Delay(TimeSpan.FromMinutes(15), cancellationToken);
+
+            await connection.CloseAsync("Refresh", SocketCloseStatus.NormalClosure, cancellationToken);
         }
     }
 }

@@ -17,7 +17,6 @@ namespace GraphQL.Configuration
             var graphQLBuilder = services
                 .AddGraphQLServer()
                 .AddAuthorization()
-                .AddHttpRequestInterceptor<HttpAuthenticationInterceptor>()
                 .AddSocketSessionInterceptor<SocketAuthenticationInterceptor>()
                 .AddInMemorySubscriptions();
 
