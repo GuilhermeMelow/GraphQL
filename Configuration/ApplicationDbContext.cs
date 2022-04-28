@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace GraphQL.Configuration
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         private readonly IConfiguration configuration;
 

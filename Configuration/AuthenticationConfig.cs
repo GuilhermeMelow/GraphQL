@@ -1,4 +1,5 @@
-﻿using GraphQL.Extensions;
+﻿using GraphQL.Configuration.ApiKey;
+using GraphQL.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,24 +18,43 @@ namespace GraphQL.Configuration
             var appSettings = appSettingsSection.Get<AppSettings>();
             var key = Encoding.ASCII.GetBytes(appSettings.Secret);
 
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
-            {
-                options.RequireHttpsMetadata = true;
-                options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters
+            services
+                .AddAuthentication(options =>
                 {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidAudience = appSettings.ValidoEm,
-                    ValidIssuer = appSettings.Emissor
-                };
-            });
+                    options.DefaultAuthenticateScheme = "smart";
+
+                })
+                .AddPolicyScheme("smart", "Authorization Selector", options =>
+                {
+                    options.ForwardDefaultSelector = context =>
+                    {
+                        var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+
+                        if (string.IsNullOrEmpty(authHeader) || authHeader.StartsWith("Bearer ")) return JwtBearerDefaults.AuthenticationScheme;
+
+                        return ApiKeyAuthNDefaults.AuthenticationScheme;
+                    };
+                })
+                .AddApiKey(options =>
+                {
+                    options.ApiKey = "Hello-World";
+                    options.QueryStringKey = "key";
+                    options.ClaimsIssuer = "API-Issuer";
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.RequireHttpsMetadata = true;
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidAudience = appSettings.ValidoEm,
+                        ValidIssuer = appSettings.Emissor
+                    };
+                });
 
             services.AddAuthorization();
 

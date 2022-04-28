@@ -1,4 +1,6 @@
-﻿using GraphQL.Extensions;
+﻿using GraphQL.Configuration;
+using GraphQL.Extensions;
+using HotChocolate.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -18,9 +20,9 @@ namespace GraphQL.Mutations
             this.appsettings = appsettings.Value;
         }
 
-        public async Task<UserResult> RegisterUser([Service] SignInManager<IdentityUser> signInManager, UserDto userDto)
+        public async Task<UserResult> RegisterUser([Service] SignInManager<ApplicationUser> signInManager, UserDto userDto)
         {
-            var user = new IdentityUser(userDto.Username)
+            var user = new ApplicationUser
             {
                 UserName = userDto.Username,
                 Email = userDto.Username,
@@ -43,7 +45,7 @@ namespace GraphQL.Mutations
             };
         }
 
-        public async Task<UserResult> LoginUser([Service] SignInManager<IdentityUser> signInManager, UserDto userDto)
+        public async Task<UserResult> LoginUser([Service] SignInManager<ApplicationUser> signInManager, UserDto userDto)
         {
             var result = await signInManager.PasswordSignInAsync(userDto.Username, userDto.Password, false, true);
 
@@ -62,6 +64,32 @@ namespace GraphQL.Mutations
                 Username = userDto.Username,
                 Token = GerarJwt(userDto.Username)
             };
+        }
+
+        [Authorize]
+        public async Task<string> RedefinirApiKey([Service] ApplicationDbContext context, [Service] SignInManager<ApplicationUser> signInManager)
+        {
+            if (signInManager.Context.User.Identity == null) throw new InvalidOperationException("Unauthorized");
+
+            var user = context.Users.FirstOrDefault(c => c.Email == signInManager.Context.User.Identity.Name);
+
+            if (user == null) throw new InvalidOperationException("Not user registered");
+
+            user.ApiKey = GerarApiKey();
+            context.Update(user);
+            await context.SaveChangesAsync();
+
+            return user.ApiKey;
+        }
+
+        private static string GerarApiKey()
+        {
+            var buffer = new byte[64];
+            var random = new Random();
+
+            random.NextBytes(buffer);
+
+            return Convert.ToBase64String(buffer);
         }
 
         private string GerarJwt(string userName)

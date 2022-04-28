@@ -6,9 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-
 var builder = WebApplication.CreateBuilder(args);
-
 {
     builder.Configuration
         .SetBasePath(Directory.GetCurrentDirectory())
@@ -17,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
     var services = builder.Services;
 
     services.AddDbContext<ApplicationDbContext>();
-    services.AddIdentity<IdentityUser, IdentityRole>()
+    services.AddIdentity<ApplicationUser, IdentityRole>()
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders()
         .AddSignInManager();
@@ -41,7 +39,6 @@ var builder = WebApplication.CreateBuilder(args);
 }
 
 var app = builder.Build();
-
 {
     app.UseWebSockets();
 
@@ -50,6 +47,7 @@ var app = builder.Build();
     app.UseRouting();
 
     app.UseAuthentication();
+
     app.UseAuthorization();
 
     app.UsePlayground();

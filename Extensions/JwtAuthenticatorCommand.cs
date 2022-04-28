@@ -19,15 +19,13 @@ namespace GraphQL.Extensions
 
         public void Execute(string token)
         {
-            var key = Encoding.ASCII.GetBytes(settings.Secret);
-
             var tokenHandler = new JwtSecurityTokenHandler();
 
             if (!tokenHandler.CanReadToken(token)) throw new ArgumentException("Irregular format Token.");
 
             var claims = tokenHandler.ValidateToken(token, new TokenValidationParameters
             {
-                IssuerSigningKey = new SymmetricSecurityKey(key),
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(settings.Secret)),
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 ValidateIssuerSigningKey = true
