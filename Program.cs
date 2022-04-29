@@ -1,6 +1,8 @@
 ﻿using GraphQL.Configuration;
+using GraphQL.Extensions;
 using GraphQL.Repositories;
 using GraphQL.UseCases;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +25,8 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddSingleton<AuthorRepository>();
     services.AddSingleton<BookRepository>();
     services.AddSingleton<IBookAddUseCase, BookAddUseCase>();
+
+    services.AddTransient<IClaimsTransformation, CustomClaimsTransformer>();
 
     services.AddAutoMapper(typeof(GraphQLProfile));
 

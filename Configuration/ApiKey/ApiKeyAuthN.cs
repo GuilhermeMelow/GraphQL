@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
@@ -13,15 +14,15 @@ namespace GraphQL.Configuration.ApiKey
 
     public class ApiKeyAuthN : AuthenticationHandler<AuthenticationSchemeOptions>
     {
-        private readonly ApplicationDbContext context;
+        private readonly UserManager<ApplicationUser> userManager;
 
-        public ApiKeyAuthN(ApplicationDbContext context,
-            IOptionsMonitor<AuthenticationSchemeOptions> options,
+        public ApiKeyAuthN(IOptionsMonitor<AuthenticationSchemeOptions> options,
             ILoggerFactory logger,
             UrlEncoder encoder,
-            ISystemClock clock) : base(options, logger, encoder, clock)
+            ISystemClock clock,
+            UserManager<ApplicationUser> userManager) : base(options, logger, encoder, clock)
         {
-            this.context = context;
+            this.userManager = userManager;
         }
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -30,7 +31,7 @@ namespace GraphQL.Configuration.ApiKey
 
             if (string.IsNullOrEmpty(apiKey)) return Task.FromResult(AuthenticateResult.NoResult());
 
-            var user = context.Users.FirstOrDefault(c => c.ApiKey == apiKey);
+            var user = userManager.Users.FirstOrDefault(c => c.ApiKey == apiKey);
 
             if (user == null) return Task.FromResult(AuthenticateResult.Fail($"Invalid Api Key provided."));
 
@@ -51,8 +52,7 @@ namespace GraphQL.Configuration.ApiKey
         {
             var identity = new ClaimsIdentity(schemeName);
 
-            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id, ClaimValueTypes.String, issuer));
-            identity.AddClaim(new Claim(ClaimTypes.Name, user.Email, ClaimValueTypes.String, issuer));
+            identity.AddClaim(new Claim(ClaimTypes.Email, user.Email, ClaimValueTypes.String, issuer));
 
             identity.AddClaims(claims ?? Enumerable.Empty<Claim>());
 

@@ -71,7 +71,8 @@ namespace GraphQL.Mutations
         {
             if (signInManager.Context.User.Identity == null) throw new InvalidOperationException("Unauthorized");
 
-            var user = context.Users.FirstOrDefault(c => c.Email == signInManager.Context.User.Identity.Name);
+            var userIdClaim = signInManager.Context.User.Claims.First(c => c.Type == "Id");
+            var user = context.Users.FirstOrDefault(c => c.Id == userIdClaim.Value);
 
             if (user == null) throw new InvalidOperationException("Not user registered");
 
