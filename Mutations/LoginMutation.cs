@@ -96,15 +96,16 @@ namespace GraphQL.Mutations
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(appsettings.Secret);
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, userName),
+                new Claim(ClaimTypes.Email, userName),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
             var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim("id", Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Name, userName),
-                    new Claim(JwtRegisteredClaimNames.Email, userName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                }),
+                Subject = new ClaimsIdentity(claims),
                 Issuer = appsettings.Emissor,
                 Audience = appsettings.ValidoEm,
                 Expires = DateTime.UtcNow.AddHours(appsettings.ExpiracaoHoras),

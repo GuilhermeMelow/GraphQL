@@ -37,8 +37,6 @@ namespace GraphQL.Configuration
                 })
                 .AddApiKey(options =>
                 {
-                    options.ApiKey = "Hello-World";
-                    options.QueryStringKey = "key";
                     options.ClaimsIssuer = "API-Issuer";
                 })
                 .AddJwtBearer(options =>

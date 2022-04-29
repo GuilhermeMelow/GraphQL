@@ -11,14 +11,17 @@ namespace GraphQL.Configuration.ApiKey
         public const string AuthenticationScheme = "ApiKey";
     }
 
-    public class ApiKeyAuthN : AuthenticationHandler<ApiKeyAuthNOptions>
+    public class ApiKeyAuthN : AuthenticationHandler<AuthenticationSchemeOptions>
     {
-        public ApiKeyAuthN(
-            IOptionsMonitor<ApiKeyAuthNOptions> options,
+        private readonly ApplicationDbContext context;
+
+        public ApiKeyAuthN(ApplicationDbContext context,
+            IOptionsMonitor<AuthenticationSchemeOptions> options,
             ILoggerFactory logger,
             UrlEncoder encoder,
             ISystemClock clock) : base(options, logger, encoder, clock)
         {
+            this.context = context;
         }
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -27,32 +30,29 @@ namespace GraphQL.Configuration.ApiKey
 
             if (string.IsNullOrEmpty(apiKey)) return Task.FromResult(AuthenticateResult.NoResult());
 
-            if (string.Compare(apiKey, Options.ApiKey, StringComparison.Ordinal) != 0)
-            {
-                return Task.FromResult(AuthenticateResult.Fail($"Invalid Api Key provided."));
-            }
+            var user = context.Users.FirstOrDefault(c => c.ApiKey == apiKey);
 
-            var principal = BuildPrincipal(Scheme.Name, Options.ApiKey, Options.ClaimsIssuer ?? "ApiKey");
+            if (user == null) return Task.FromResult(AuthenticateResult.Fail($"Invalid Api Key provided."));
 
-            return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal, apiKey)));
+            var principal = BuildPrincipal(Scheme.Name, user, Options.ClaimsIssuer ?? "ApiKey");
+
+            return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal, user.Email)));
         }
 
         protected string? ParseApiKey()
         {
-            if (!Request.Headers.TryGetValue("Authorization", out var apiKeys)) return string.Empty;
-
-            return apiKeys.FirstOrDefault();
+            return Request.Headers.TryGetValue("Authorization", out var apiKeys) ? apiKeys.FirstOrDefault() : string.Empty;
         }
 
         private static ClaimsPrincipal BuildPrincipal(string schemeName,
-            string name,
+            ApplicationUser user,
             string issuer,
             IEnumerable<Claim>? claims = default(List<Claim>))
         {
             var identity = new ClaimsIdentity(schemeName);
 
-            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, name, ClaimValueTypes.String, issuer));
-            identity.AddClaim(new Claim(ClaimTypes.Name, name, ClaimValueTypes.String, issuer));
+            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id, ClaimValueTypes.String, issuer));
+            identity.AddClaim(new Claim(ClaimTypes.Name, user.Email, ClaimValueTypes.String, issuer));
 
             identity.AddClaims(claims ?? Enumerable.Empty<Claim>());
 
