@@ -1,4 +1,4 @@
-﻿namespace GraphQL.Models
+﻿namespace GraphQL.Mutations
 {
     public class Author : Model
     {

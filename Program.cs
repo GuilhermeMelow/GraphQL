@@ -1,9 +1,13 @@
 ﻿using GraphQL.Configuration;
-using GraphQL.Extensions;
-using GraphQL.Repositories;
-using GraphQL.UseCases;
+using GraphQL.Extensions.Authentication;
+using GraphQL.Extensions.UserCache;
+using GraphQL.Models;
+using GraphQL.Operations.Mutations.UseCases;
+using GraphQL.Services.Repositories;
+using GraphQL.Services.UserService;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,16 +21,19 @@ var builder = WebApplication.CreateBuilder(args);
     var services = builder.Services;
 
     services.AddDbContext<ApplicationDbContext>();
-    services.AddIdentity<ApplicationUser, IdentityRole>()
+    services.AddIdentity<User, IdentityRole>()
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddDefaultTokenProviders()
         .AddSignInManager();
 
+    services.AddSingleton<ApplicationUserCache>();
     services.AddSingleton<AuthorRepository>();
     services.AddSingleton<BookRepository>();
     services.AddSingleton<IBookAddUseCase, BookAddUseCase>();
+    services.AddSingleton<IApplicationUserService, ApplicationUserService>();
+    services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-    services.AddTransient<IClaimsTransformation, CustomClaimsTransformer>();
+    services.AddScoped<IClaimsTransformation, CustomClaimsTransformer>();
 
     services.AddAutoMapper(typeof(GraphQLProfile));
 
@@ -53,6 +60,8 @@ var app = builder.Build();
     app.UseAuthentication();
 
     app.UseAuthorization();
+
+    app.UserCacheUser();
 
     app.UsePlayground();
 
