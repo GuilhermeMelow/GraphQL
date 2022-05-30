@@ -36,7 +36,7 @@ namespace GraphQL.Operations.Mutations
         }
 
         [Authorize]
-        public static async Task<string> RedefinirApiKey([Service] IApplicationUserService userService, [Service] IHttpContextAccessor httpContextAccessor)
+        public async Task<string> RedefineApiKey([Service] IApplicationUserService userService, [Service] IHttpContextAccessor httpContextAccessor)
         {
             if (httpContextAccessor.HttpContext == null) throw new ArgumentNullException(nameof(httpContextAccessor));
 

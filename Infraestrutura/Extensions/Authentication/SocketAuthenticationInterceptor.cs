@@ -1,16 +1,18 @@
-﻿using HotChocolate.AspNetCore;
+﻿using GraphQL.Extensions.Authentication.Providers;
+using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GraphQL.Extensions.Authentication
 {
     public class SocketAuthenticationInterceptor : DefaultSocketSessionInterceptor
     {
-        private readonly AuthenticationProviderFactory authenticationProviderFactory;
+        private readonly IServiceProvider serviceProvider;
 
-        public SocketAuthenticationInterceptor(AuthenticationProviderFactory authenticationProviderFactory)
+        public SocketAuthenticationInterceptor(IServiceProvider serviceProvider)
         {
-            this.authenticationProviderFactory = authenticationProviderFactory;
+            this.serviceProvider = serviceProvider;
         }
 
         public override ValueTask<ConnectionStatus> OnConnectAsync(ISocketConnection connection, InitializeConnectionMessage message, CancellationToken cancellationToken)
@@ -20,22 +22,25 @@ namespace GraphQL.Extensions.Authentication
                 return ValueTask.FromResult(ConnectionStatus.Reject("No Authorization"));
             }
 
+            using var scope = serviceProvider.CreateScope();
+            var authFactory = scope.ServiceProvider.GetRequiredService<AuthenticationProviderFactory>();
+            var provider = authFactory.GetProvider(authToken);
+
             try
             {
-                var provider = authenticationProviderFactory.GetProvider(authToken);
                 provider.Authenticate(authToken);
             }
-            catch (Exception ex)
+            catch (AuthenticationException ex)
             {
                 return ValueTask.FromResult(ConnectionStatus.Reject(ex.Message));
             }
 
-            Task.Run(() => RefreshConnectionAsync(connection, cancellationToken), cancellationToken);
+            Task.Run(() => CloseConnection(connection, cancellationToken), cancellationToken);
 
             return base.OnConnectAsync(connection, message, cancellationToken);
         }
 
-        private static async Task RefreshConnectionAsync(ISocketConnection connection, CancellationToken cancellationToken)
+        private static async Task CloseConnection(ISocketConnection connection, CancellationToken cancellationToken)
         {
             await Task.Delay(TimeSpan.FromMinutes(15), cancellationToken);
 

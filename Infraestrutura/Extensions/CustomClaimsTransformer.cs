@@ -33,7 +33,7 @@ namespace GraphQL.Extensions.Authentication
         {
             var user = await userService.GetUserAsync(principal.FindFirstValue(ClaimTypes.Email));
 
-            if (user != null) return null;
+            if (user == null) return null;
 
             var isNotAuthenticated = principal.Identity == null || !principal.Identity.IsAuthenticated;
             var hasNotEmailClaim = principal.FindFirstValue(ClaimTypes.Email) == null;

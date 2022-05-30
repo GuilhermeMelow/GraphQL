@@ -1,5 +1,6 @@
 ﻿using GraphQL.Configuration;
 using GraphQL.Extensions.Authentication;
+using GraphQL.Extensions.Authentication.Providers;
 using GraphQL.Models;
 using GraphQL.Operations.Mutations.UseCases;
 using GraphQL.Services.Repositories;
@@ -27,11 +28,12 @@ var builder = WebApplication.CreateBuilder(args);
 
     services.AddSingleton<AuthorRepository>();
     services.AddSingleton<BookRepository>();
+
     services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-    services.AddSingleton<AuthenticationProviderFactory>();
-    services.AddSingleton<IAuthenticationProvider, JwtAuthenticatorProvider>();
-    services.AddSingleton<IAuthenticationProvider, ApiAuthenticatorProvider>();
+    services.AddScoped<AuthenticationProviderFactory>();
+    services.AddScoped<JwtAuthenticatorProvider>();
+    services.AddScoped<ApiAuthenticatorProvider>();
 
     services.AddScoped<IBookAddUseCase, BookAddUseCase>();
     services.AddScoped<IApplicationUserService, ApplicationUserService>();
