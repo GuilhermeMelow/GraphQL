@@ -1,14 +1,5 @@
 ﻿using GraphQL.Configuration;
-using GraphQL.Extensions.Authentication;
-using GraphQL.Extensions.Authentication.Providers;
-using GraphQL.Models;
-using GraphQL.Operations.Mutations.UseCases;
-using GraphQL.Services.Repositories;
-using GraphQL.Services.UserService;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,28 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 
     var services = builder.Services;
 
-    services.AddDbContext<ApplicationDbContext>();
-    services.AddIdentity<User, IdentityRole>()
-        .AddEntityFrameworkStores<ApplicationDbContext>()
-        .AddDefaultTokenProviders()
-        .AddSignInManager();
-
-    services.AddSingleton<AuthorRepository>();
-    services.AddSingleton<BookRepository>();
-
-    services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
-    services.AddScoped<AuthenticationProviderFactory>();
-    services.AddScoped<JwtAuthenticatorProvider>();
-    services.AddScoped<ApiAuthenticatorProvider>();
-
-    services.AddScoped<IBookAddUseCase, BookAddUseCase>();
-    services.AddScoped<IApplicationUserService, ApplicationUserService>();
-    services.AddScoped<IClaimsTransformation, CustomClaimsTransformer>();
+    services.AddDependencies();
 
     services.AddAutoMapper(typeof(GraphQLProfile));
 
-    services.AddAuthJwt(builder.Configuration);
+    services.AddAuthentication(builder.Configuration);
 
     services.AddGraphql();
 
@@ -61,9 +35,7 @@ var app = builder.Build();
 
     app.UseRouting();
 
-    app.UseAuthentication();
-
-    app.UseAuthorization();
+    app.UseIdentityConfig();
 
     app.UsePlayground();
 

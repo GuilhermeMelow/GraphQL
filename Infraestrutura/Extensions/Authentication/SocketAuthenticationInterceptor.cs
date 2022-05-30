@@ -44,7 +44,7 @@ namespace GraphQL.Extensions.Authentication
         {
             await Task.Delay(TimeSpan.FromMinutes(15), cancellationToken);
 
-            await connection.CloseAsync("Refresh", SocketCloseStatus.NormalClosure, cancellationToken);
+            await connection.CloseAsync(message: "Timeout", SocketCloseStatus.NormalClosure, cancellationToken);
         }
     }
 }

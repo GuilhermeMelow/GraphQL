@@ -3,7 +3,7 @@ using GraphQL.Services.UserService;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
 
-namespace GraphQL.Extensions.Authentication
+namespace GraphQL.Extensions
 {
     public class CustomClaimsTransformer : IClaimsTransformation
     {
