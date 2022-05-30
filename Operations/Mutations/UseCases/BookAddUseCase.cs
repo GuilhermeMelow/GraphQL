@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using GraphQL.GraphExceptions.Book;
 using GraphQL.Mutations;
+using GraphQL.Operations.Mutations.Dtos;
 using GraphQL.Services.Repositories;
 using HotChocolate.Subscriptions;
 

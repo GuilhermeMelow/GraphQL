@@ -1,12 +1,13 @@
 ﻿using GraphQL.Models;
-using GraphQL.Mutations;
+using GraphQL.Operations.Mutations.Dtos;
 
 namespace GraphQL.Services.UserService
 {
     public interface IApplicationUserService
     {
-        User? GetUser();
+        Task<User> GetUserAsync(string email);
         Task RegisterAsync(UserDto userDto);
         Task LoginAsync(UserDto userDto);
+        Task<string> RedefineApiKey(string userEmail);
     }
 }

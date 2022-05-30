@@ -1,30 +1,29 @@
 ﻿using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
-using Microsoft.Extensions.Options;
 
 namespace GraphQL.Extensions.Authentication
 {
     public class SocketAuthenticationInterceptor : DefaultSocketSessionInterceptor
     {
-        private readonly AppSettings appSettings;
+        private readonly AuthenticationProviderFactory authenticationProviderFactory;
 
-        public SocketAuthenticationInterceptor(IOptions<AppSettings> appSettings)
+        public SocketAuthenticationInterceptor(AuthenticationProviderFactory authenticationProviderFactory)
         {
-            this.appSettings = appSettings.Value;
+            this.authenticationProviderFactory = authenticationProviderFactory;
         }
 
         public override ValueTask<ConnectionStatus> OnConnectAsync(ISocketConnection connection, InitializeConnectionMessage message, CancellationToken cancellationToken)
         {
-            if (message.Payload == null || !message.Payload.Any() || message.Payload["Authorization"] is not string auth)
+            if (message.Payload == null || !message.Payload.Any() || message.Payload["Authorization"] is not string authToken)
             {
                 return ValueTask.FromResult(ConnectionStatus.Reject("No Authorization"));
             }
 
-            var token = auth.Replace("Bearer", "").Trim();
             try
             {
-                new JwtAuthenticatorCommand(appSettings).Execute(token);
+                var provider = authenticationProviderFactory.GetProvider(authToken);
+                provider.Authenticate(authToken);
             }
             catch (Exception ex)
             {

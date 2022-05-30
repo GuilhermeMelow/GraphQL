@@ -1,10 +1,8 @@
-﻿using GraphQL.Configuration;
-using GraphQL.Extensions.Authentication;
-using GraphQL.Models;
-using GraphQL.Mutations;
+﻿using GraphQL.Extensions.Authentication;
+using GraphQL.Operations.Mutations.Dtos;
 using GraphQL.Services.UserService;
 using HotChocolate.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -23,50 +21,28 @@ namespace GraphQL.Operations.Mutations
             this.appsettings = appsettings.Value;
         }
 
-        public async Task<UserResult> RegisterUser([Service] SignInManager<User> signInManager, [Service] IApplicationUserService userService, UserDto userDto)
+        public async Task<UserResult> RegisterUser([Service] IApplicationUserService userService, UserDto userDto)
         {
             await userService.RegisterAsync(userDto);
 
-            return new UserResult
-            {
-                Username = userDto.Username,
-                Token = GerarJwt(userDto.Username)
-            };
+            return new UserResult(userDto.Username, GerarJwt(userDto.Username));
         }
 
-        public async Task<UserResult> LoginUser([Service] SignInManager<User> signInManager, [Service] IApplicationUserService userService, UserDto userDto)
+        public async Task<UserResult> LoginUser([Service] IApplicationUserService userService, UserDto userDto)
         {
             await userService.LoginAsync(userDto);
 
-            return new UserResult
-            {
-                Username = userDto.Username,
-                Token = GerarJwt(userDto.Username)
-            };
+            return new UserResult(userDto.Username, Token: GerarJwt(userDto.Username));
         }
 
         [Authorize]
-        public async Task<string> RedefinirApiKey([Service] ApplicationDbContext context, [Service] IApplicationUserService userService)
+        public static async Task<string> RedefinirApiKey([Service] IApplicationUserService userService, [Service] IHttpContextAccessor httpContextAccessor)
         {
-            var user = userService.GetUser();
+            if (httpContextAccessor.HttpContext == null) throw new ArgumentNullException(nameof(httpContextAccessor));
 
-            if (user == null) throw new InvalidOperationException("Unauthorized");
+            var userEmail = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email);
 
-            user.ApiKey = GerarApiKey();
-            context.Update(user);
-            await context.SaveChangesAsync();
-
-            return user.ApiKey;
-        }
-
-        private static string GerarApiKey()
-        {
-            var buffer = new byte[64];
-            var random = new Random();
-
-            random.NextBytes(buffer);
-
-            return Convert.ToBase64String(buffer);
+            return await userService.RedefineApiKey(userEmail);
         }
 
         private string GerarJwt(string userName)

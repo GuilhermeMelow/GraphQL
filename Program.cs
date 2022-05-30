@@ -1,6 +1,5 @@
 ﻿using GraphQL.Configuration;
 using GraphQL.Extensions.Authentication;
-using GraphQL.Extensions.UserCache;
 using GraphQL.Models;
 using GraphQL.Operations.Mutations.UseCases;
 using GraphQL.Services.Repositories;
@@ -26,13 +25,16 @@ var builder = WebApplication.CreateBuilder(args);
         .AddDefaultTokenProviders()
         .AddSignInManager();
 
-    services.AddSingleton<ApplicationUserCache>();
     services.AddSingleton<AuthorRepository>();
     services.AddSingleton<BookRepository>();
-    services.AddSingleton<IBookAddUseCase, BookAddUseCase>();
-    services.AddSingleton<IApplicationUserService, ApplicationUserService>();
     services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+    services.AddSingleton<AuthenticationProviderFactory>();
+    services.AddSingleton<IAuthenticationProvider, JwtAuthenticatorProvider>();
+    services.AddSingleton<IAuthenticationProvider, ApiAuthenticatorProvider>();
+
+    services.AddScoped<IBookAddUseCase, BookAddUseCase>();
+    services.AddScoped<IApplicationUserService, ApplicationUserService>();
     services.AddScoped<IClaimsTransformation, CustomClaimsTransformer>();
 
     services.AddAutoMapper(typeof(GraphQLProfile));
@@ -60,8 +62,6 @@ var app = builder.Build();
     app.UseAuthentication();
 
     app.UseAuthorization();
-
-    app.UserCacheUser();
 
     app.UsePlayground();
 

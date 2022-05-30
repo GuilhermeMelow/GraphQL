@@ -1,26 +1,24 @@
-﻿using GraphQL.Extensions.UserCache;
-using GraphQL.Models;
+﻿using GraphQL.Models;
+using GraphQL.Services.UserService;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace GraphQL.Extensions.Authentication
 {
     public class CustomClaimsTransformer : IClaimsTransformation
     {
-        private readonly UserManager<User> userManager;
-        private readonly ApplicationUserCache userCache;
+        private readonly IApplicationUserService userService;
 
-        public CustomClaimsTransformer(UserManager<User> userManager, ApplicationUserCache userCache)
+        public CustomClaimsTransformer(IApplicationUserService userService)
         {
-            this.userManager = userManager;
-            this.userCache = userCache;
+            this.userService = userService;
         }
 
-        public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
+        public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
         {
-            if (!TryGetUser(principal, out var user) || user == null) return Task.FromResult(principal);
+            var user = await GetUserAsync(principal);
+
+            if (user == null) return principal;
 
             principal.Identities.First().AddClaims(new Claim[]
             {
@@ -28,26 +26,19 @@ namespace GraphQL.Extensions.Authentication
                 new Claim("ApiKey", user.ApiKey ?? string.Empty),
             });
 
-            return Task.FromResult(principal);
+            return principal;
         }
 
-        private bool TryGetUser(ClaimsPrincipal principal, out User? user)
+        private async Task<User?> GetUserAsync(ClaimsPrincipal principal)
         {
-            user = userCache.GetCache();
+            var user = await userService.GetUserAsync(principal.FindFirstValue(ClaimTypes.Email));
 
-            if (user != null) return true;
+            if (user != null) return null;
 
             var isNotAuthenticated = principal.Identity == null || !principal.Identity.IsAuthenticated;
             var hasNotEmailClaim = principal.FindFirstValue(ClaimTypes.Email) == null;
 
-            if (isNotAuthenticated && hasNotEmailClaim) return false;
-
-            user = userManager
-                    .Users
-                    .AsNoTracking()
-                    .FirstOrDefault(c => c.Email == principal.FindFirstValue(ClaimTypes.Email));
-
-            return true;
+            return isNotAuthenticated && hasNotEmailClaim ? null : user;
         }
     }
 }
